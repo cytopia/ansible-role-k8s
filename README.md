@@ -41,13 +41,17 @@ k8s_templates_create:
   - template: path/to/pod1.yml.j2
     tag: stage1
   - template: path/to/pod2.yml.j2
-    tag: stage2
+    tags:
+      - pod
+      - stage2
 
 k8s_templates_remove:
   - template: path/to/ds1.yml.j2
     tag: stage1
   - template: path/to/ds2.yml.j2
-    tag: stage2
+    tags:
+      - pod
+      - stage2
 ```
 **Execute:**
 ```bash
