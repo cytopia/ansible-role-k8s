@@ -1,6 +1,6 @@
 # Ansible role: K8s
 
-This role render an arbitrary number of [Jinja2](http://jinja.pocoo.org/) templates and deploys or removes them to/from Kubernetes cluster.
+This role renders an arbitrary number of [Jinja2](http://jinja.pocoo.org/) templates and deploys or removes them to/from Kubernetes cluster.
 
 
 [![Build Status](https://travis-ci.org/cytopia/ansible-role-aws-vpc.svg?branch=master)](https://travis-ci.org/cytopia/ansible-role-aws-vpc)
