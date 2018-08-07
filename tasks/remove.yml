@@ -1,6 +1,6 @@
 ---
 
-- name: ensure deployment is removed from kubernetes cluster
+- name: "ensure template is removed from k8s: {{ k8s_item.template | basename }}"
   k8s:
     state: absent
     definition: "{{ lookup('template', k8s_item.template) | from_yaml }}"
