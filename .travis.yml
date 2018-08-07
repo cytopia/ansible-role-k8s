@@ -1,0 +1,48 @@
+---
+
+###
+### Travis settings
+###
+sudo: required
+services:
+  - docker
+
+env:
+  global:
+    - ANSIBLE_VERSION=2.5
+
+
+jobs:
+  include:
+    ###
+    ### Stage 1: Static file analysis
+    ###
+    - stage: static file analysis
+      install:
+        - sudo pip install yamllint
+      script:
+        - make lint
+
+    ###
+    ### Stage 2: Run Ansible
+    ###
+
+    # Job 1: Ansible 2.5
+    - stage: test ansible
+      install:
+        - max=100; i=0; while [ $i -lt $max ]; do if sudo apt-get update; then break; else i=$((i+1)); fi done
+        - max=100; i=0; while [ $i -lt $max ]; do if sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce; then break; else i=$((i+1)); fi done
+      env:
+        - ANSIBLE_VERSION=2.5
+      script:
+        - make test ANSIBLE_VERSION=${ANSIBLE_VERSION}
+
+    # Job 1: Ansible latest
+    - stage: test ansible
+      install:
+        - max=100; i=0; while [ $i -lt $max ]; do if sudo apt-get update; then break; else i=$((i+1)); fi done
+        - max=100; i=0; while [ $i -lt $max ]; do if sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce; then break; else i=$((i+1)); fi done
+      env:
+        - ANSIBLE_VERSION=latest
+      script:
+        - make test ANSIBLE_VERSION=${ANSIBLE_VERSION}

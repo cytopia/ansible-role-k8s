@@ -1,0 +1,29 @@
+---
+
+###
+### Main entrypoint
+###
+
+- include_tasks: remove.yml
+  loop_control:
+    loop_var: k8s_item
+  with_items:
+    - "{{ k8s_templates_remove }}"
+  when:
+    - (
+        k8s_remove is defined and not k8s_create is defined
+      ) or (
+        k8s_remove is not defined and not k8s_create is defined
+      )
+
+- include_tasks: create.yml
+  loop_control:
+    loop_var: k8s_item
+  with_items:
+    - "{{ k8s_templates_create }}"
+  when:
+    - (
+        k8s_create is defined and not k8s_remove is defined
+      ) or (
+        k8s_create is not defined and not k8s_remove is defined
+      )
