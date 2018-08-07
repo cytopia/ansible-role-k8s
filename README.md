@@ -3,8 +3,8 @@
 This role renders an arbitrary number of [Jinja2](http://jinja.pocoo.org/) templates and deploys or removes them to/from Kubernetes cluster.
 
 
-[![Build Status](https://travis-ci.org/cytopia/ansible-role-aws-vpc.svg?branch=master)](https://travis-ci.org/cytopia/ansible-role-aws-vpc)
-[![Version](https://img.shields.io/github/tag/cytopia/ansible-role-aws-vpc.svg)](https://github.com/cytopia/ansible-role-aws-vpc/tags)
+[![Build Status](https://travis-ci.org/cytopia/ansible-role-k8s.svg?branch=master)](https://travis-ci.org/cytopia/ansible-role-k8s)
+[![Version](https://img.shields.io/github/tag/cytopia/ansible-role-k8s.svg)](https://github.com/cytopia/ansible-role-k8s/tags)
 
 
 ## Requirements
