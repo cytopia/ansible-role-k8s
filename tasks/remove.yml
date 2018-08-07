@@ -1,0 +1,24 @@
+---
+
+- name: ensure deployment is removed from kubernetes cluster
+  k8s:
+    state: absent
+    definition: "{{ lookup('template', k8s_item.template) | from_yaml }}"
+    # Optional auth variables
+    context: "{{ k8s_item.context | default(omit) }}"
+    api_key: "{{ k8s_item.api_key | default(omit) }}"
+    ssl_ca_cert: "{{ k8s_item.ssl_ca_cert | default(omit) }}"
+    cert_file: "{{ k8s_item.cert_file | default(omit) }}"
+    key_file: "{{ k8s_item.key_file | default(omit) }}"
+    host: "{{ k8s_item.host | default(omit) }}"
+    username: "{{ k8s_item.username | default(omit) }}"
+    password: "{{ k8s_item.password | default(omit) }}"
+  # Alway run when k8s_tag is not defined
+  # or only run templates that match k8s_tag values
+  when: |
+    (
+      k8s_item.tag is defined and
+      k8s_tag is defined and k8s_item.tag == k8s_tag
+    ) or (
+      k8s_tag is not defined
+    )

@@ -1,0 +1,17 @@
+---
+dependencies: []
+
+galaxy_info:
+  company: cytopia
+  author: cytopia
+  license: MIT
+  description: Deploy and remove Kubernetes templates with Jinja2 templates
+  min_ansible_version: 2.6
+  platforms:
+    - name: all
+      versions:
+        - all
+  galaxy_tags:
+    - Kubernetes
+    - K8s
+    - cloud
