@@ -1,6 +1,6 @@
 ---
 
-- name: ensure deployment is removed from kubernetes cluster
+- name: "ensure template is removed from k8s: {{ k8s_item.template | basename }}"
   k8s:
     state: absent
     definition: "{{ lookup('template', k8s_item.template) | from_yaml }}"
@@ -17,8 +17,13 @@
   # or only run templates that match k8s_tag values
   when: |
     (
-      k8s_item.tag is defined and
-      k8s_tag is defined and k8s_item.tag == k8s_tag
+      k8s_tag is defined and k8s_tag and
+      k8s_item.tag is defined and k8s_item.tag and
+      k8s_tag == k8s_item.tag
+    ) or (
+      k8s_tag is defined and k8s_tag and
+      k8s_item.tags is defined and k8s_item.tags and
+      k8s_tag in k8s_item.tags
     ) or (
       k8s_tag is not defined
     )
