@@ -17,26 +17,72 @@ This role renders an arbitrary number of [Jinja2](http://jinja.pocoo.org/) templ
 
 Additional variables that can be used (either as `host_vars`/`group_vars` or via command line args):
 
-| Variable     | Description                  |
-|--------------|------------------------------|
-| `k8s_create` | If set with any value, only deployments to create are executed. |
-| `k8s_remove` | If set with any value, only deployments to remove are executed. |
-| `k8s_tag`    | Only deployments (create or remove) which have this tag specified in their definition are executed. |
-| `k8s_force`  | Force deployment. The existing object will be replaced. |
+| Variable      | Description                  |
+|---------------|------------------------------|
+| `k8s_create`  | If set with any value, only deployments to create are executed. |
+| `k8s_remove`  | If set with any value, only deployments to remove are executed. |
+| `k8s_context` | Global cluster context (can be overwritten by each array item). |
+| `k8s_tag`     | Only deployments (create or remove) which have this tag specified in their definition are executed. |
+| `k8s_force`   | Force deployment. The existing object will be replaced. |
 
 
 ## Example
 
-**playbook.yml:**
+For all examples below, we will use the following Ansible playbook:
+
+**`playbook.yml`**
 ```yaml
+---
 - hosts: all
   roles:
     - k8s
   tags:
     - k8s
 ```
-**group_vars/all.yml:**
+
+
+### 1. Usage of variables
+
+**Required files:**
+
+**`create-k8s-namespace.yml.j2`**
+```yml
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: {{ my_namespace }}
+  labels:
+    name: {{ my_namespace }}
+```
+
+**`group_vars/all.yml`**
 ```yaml
+---
+# Custom variables for usage in templates
+my_namespace: frontend
+
+# Role variables
+k8s_templates_create:
+  - template: path/to/create-k8s-namespace.yml.j2
+```
+
+**How to execute:**
+```bash
+# Deploy namespace
+$ ansible-playbook playbook.yml
+
+# Overwrite namespace name
+$ ansible-playbook playbook.yml -e my_namespace=backend
+```
+
+### 2. Usage of tags per item
+
+**Required files:**
+
+**`group_vars/all.yml`**
+```yaml
+---
 k8s_templates_create:
   - template: path/to/pod1.yml.j2
     tag: stage1
@@ -53,7 +99,8 @@ k8s_templates_remove:
       - pod
       - stage2
 ```
-**Execute:**
+
+**How to execute:**
 ```bash
 # Remove and deploy all files
 $ ansible-playbook playbook.yml
@@ -65,6 +112,38 @@ $ ansible-playbook playbook.yml -e k8s_create=1
 $ ansible-playbook playbook.yml -e k8s_create=1 -e k8s_tag=stage1
 ```
 
+### 3. Usage of context per item
+
+**Required files:**
+
+**`group_vars/all.yml`**
+```yaml
+---
+# context is global for all deployment files
+k8s_context: minikube
+
+k8s_templates_create:
+  - template: path/to/pod1.yml.j2
+  - template: path/to/pod2.yml.j2
+  # The next item uses a different context (takes precedence over global context)
+  - template: path/to/pod3.yml.j2
+    context: dev-cluster
+```
+
+**How to execute:**
+```bash
+# IMPORTANT:
+# When a context is attached to an item (as with pod3.yml)
+# it will take precedence over any globally specified context.
+# So this example will deploy everything into the cluster specified by the global context,
+# except pod3.yml, which will always go into dev-cluster
+
+# Deploy everything into minikube (pod3.yml will however be deployed into dev-cluster)
+$ ansible-playbook playbook.yml -e k8s_create=1
+
+# Deploy everything into a different cluster (pod3.yml will however be deployed into dev-cluster)
+$ ansible-playbook playbook.yml -e k8s_create=1 -e k8s_context=prod-cluster
+```
 
 ## Testing
 

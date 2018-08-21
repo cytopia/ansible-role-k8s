@@ -1,12 +1,17 @@
 ---
 
-- name: "ensure template is deployed on k8s: {{ k8s_item.template | basename }}"
+- name: >-
+      {% if 'context' in k8s_item -%}
+        [{{ k8s_item.context }}]{{' '}}
+      {%- elif k8s_context -%}
+        [{{ k8s_context }}]{{' '}}
+      {%- endif %}ensure template is deployed: {{ k8s_item.template | basename }}
   k8s:
     state: present
     force: "{{ k8s_force | default(False) }}"
     definition: "{{ lookup('template', k8s_item.template) | from_yaml }}"
     # Optional auth variables
-    context: "{{ k8s_item.context | default(omit) }}"
+    context: "{{ k8s_item.context | default(k8s_context | default(omit)) }}"
     api_key: "{{ k8s_item.api_key | default(omit) }}"
     ssl_ca_cert: "{{ k8s_item.ssl_ca_cert | default(omit) }}"
     cert_file: "{{ k8s_item.cert_file | default(omit) }}"
