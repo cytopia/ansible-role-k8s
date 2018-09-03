@@ -1,0 +1,191 @@
+---
+
+###
+### Jinja2 templates are temporarily rendered here
+###
+k8s_tmp_dir: "{{ role_path }}/_rendered"
+
+
+###
+### Ignore fields that have an empty value
+###
+k8s_diff_ignore_empty: True
+
+###
+### Kubernetes automatically adds default keys to its deployed
+### deployments, pods, ds, etc
+###
+### If those do not exist in the local template, they will be shown
+### as changed. Therefore this role adds the Kubernetes default
+### keys for being ignored.
+###
+### Ignore rule 1:
+### --------------
+### Keys with empty value are removed from source and target dict and therefore ignored
+### from the diff output.
+###
+### Ignore rule 2:
+### --------------
+### Keys with a specific value are removed from source dict if it has the same value.
+### Keys with a specific value are removed from target dict if it has the same value.
+###
+k8s_diff_ignore_keys:
+  ###
+  ### Kubernetes ignore defines which are equal for all 'kind'
+  ### This section is always merged with the specific sections.
+  ### If specific sections define a different value, they take precedence.
+  ###
+  _all:
+    metadata:
+      creationTimestamp:
+      resourceVersion:
+      selfLink:
+      uid:
+    status:
+
+  ###
+  ### kind: Namespace
+  ###
+  Namespace:
+    spec:
+      finalizers:
+        - kubernetes
+
+  ###
+  ### kind: APIService
+  ###
+  APIService:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration:
+    spec:
+      caBundle:
+
+  ###
+  ### kind: ServiceAccount
+  ###
+  ServiceAccount:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration:
+    secrets:
+      name:
+
+  ###
+  ### kind: Service
+  ###
+  Service:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration:
+    spec:
+      clusterIP:
+      type: ClusterIP
+
+  ###
+  ### kind: ClusterRole
+  ###
+  ClusterRole:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration:
+
+  ###
+  ### kind: ClusterRoleBinding
+  ###
+  ClusterRoleBinding:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration:
+
+  ###
+  ### kind: Role
+  ###
+  Role:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration:
+
+  ###
+  ### kind: RoleBinding
+  ###
+  RoleBinding:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration:
+
+  ###
+  ### kind: DaemonSet
+  ###
+  DaemonSet:
+    metadata:
+      generation:
+    spec:
+      revisionHistoryLimit:
+      template:
+        metadata:
+          creationTimestamp:
+        spec:
+          # serviceAccount is automatically added by serviceAccountName with the same value
+          # https://github.com/kubernetes/kubectl/issues/23
+          serviceAccount:
+          containers:
+            - ports:
+                - protocol: TCP
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          volumes:
+            - configMap:
+                defaultMode: 420
+      templateGeneration: '1'
+      updateStrategy:
+        type: OnDelete
+
+  ###
+  ### kind: Deployment
+  ###
+  Deployment:
+    metadata:
+      annotations:
+        deployment.kubernetes.io/revision:
+        kubectl.kubernetes.io/last-applied-configuration:
+      generation:
+    spec:
+      progressDeadlineSeconds: 600
+      revisionHistoryLimit:
+      replicas: 1
+      strategy:
+        rollingUpdate:
+          maxSurge: 25%
+          maxUnavailable: 25%
+        type: RollingUpdate
+      template:
+        metadata:
+          creationTimestamp:
+        spec:
+          # serviceAccount is automatically added by serviceAccountName with the same value
+          # https://github.com/kubernetes/kubectl/issues/23
+          serviceAccount:
+          containers:
+            - env:
+                - valueFrom:
+                    fieldRef:
+                      apiVersion: v1
+              imagePullPolicy: IfNotPresent
+              ports:
+                - protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  scheme: HTTP
+                periodSeconds: 10
+                successThreshold: 1
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          terminationGracePeriodSeconds: 30
