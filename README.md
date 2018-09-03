@@ -1,10 +1,10 @@
 # Ansible role: K8s
 
-This role renders an arbitrary number of [Jinja2](http://jinja.pocoo.org/) templates and deploys
-or removes them to/from Kubernetes cluster.
-
-Additionally this role offers a *dry-run*<sup><a href="#dry-run">[1]</a></sup> for Kubernetes deployments by doing a line-by-line
-diff between local templates to deploy and already deployed templayes.
+This role renders an arbitrary number of **[Jinja2](http://jinja.pocoo.org/)** templates and deploys
+to or removes from one or multiple [Kubernetes](https://kubernetes.io) cluster.
+Additionally this role offers a **dry-run**<sup><a href="#dry-run"><strong>[1]</strong></a></sup>
+for Kubernetes deployments by doing a line-by-line diff between local templates and already
+deployed templates.
 
 [![Build Status](https://travis-ci.org/cytopia/ansible-role-k8s.svg?branch=master)](https://travis-ci.org/cytopia/ansible-role-k8s)
 [![Version](https://img.shields.io/github/tag/cytopia/ansible-role-k8s.svg)](https://github.com/cytopia/ansible-role-k8s/tags)
@@ -13,50 +13,61 @@ diff between local templates to deploy and already deployed templayes.
 
 1. [Requirements](#requirements)
 2. [Role variables](#role-variables)
+    1. [Template variables](#template-variables)
+    2. [Authentication variables](#authentication-variables)
+    3. [Available list item keys](#available-list-item-keys)
 3. [Dry-run](#dry-run)
+    1. [How does it work](#how-does-it-work)
+    2. [Particularities](#particularities)
+    3. [How does it look](#how-does-it-look)
 4. [Examples](#examples)
+    1. [Usage of variables](#usage-of-variables)
+    2. [Usage of tags per item](#usage-of-tags-per-item)
+    2. [Usage of context per item](#usage-of-context-per-item)
 5. [Testing](#testing)
 6. [License](#license)
 
 
 ## Requirements
 
+In order to use this role you need to meet the following software requirements:
+
 * Ansible 2.5
 * [openshift](https://pypi.org/project/openshift/) Python package
 * [PyYAML](https://pyyaml.org/) Python package
-* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl)
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl) binary
 
 
 ## Role variables
 
-Additional variables that can be used (either as `host_vars`/`group_vars` or via command line args):
+The K8s role offers the following variables.
 
-#### Control variables
+### Template variables
 
-| Variable      | Description                  |
-|---------------|------------------------------|
-| `k8s_create`  | If set with any value, only deployments to create are executed. |
-| `k8s_remove`  | If set with any value, only deployments to remove are executed. |
-| `k8s_tag`     | Only deployments (create or remove) which have this tag specified in their definition are executed. |
-| `k8s_force`   | Force deployment. The existing object will be replaced. |
+| Variable      | Type   | Description                 |
+|---------------|--------|-----------------------------|
+| `k8s_create`  | list   | If set with any value, only deployments to create are executed. |
+| `k8s_remove`  | list   | If set with any value, only deployments to remove are executed. |
+| `k8s_tag`     | string | Only deployments (create or remove) which have this tag specified in their definition are executed. |
+| `k8s_force`   | bool   | Force deployment. The existing object will be replaced. |
 
-#### Authentication variables
+### Authentication variables
 
 Each of the following values can also be set per item and will then take precedence over the
 below listed global values:
 
-| Variable          | Description                  |
-|-------------------|------------------------------|
-| `k8s_context`     | Global cluster context |
-| `k8s_host`        | The kubernetes API hostname  |
-| `k8s_api_key`     | API key/token to authenticate against the cluster |
-| `k8s_ssl_ca_cert` | Certificate authority to authenticate against the cluster |
-| `k8s_cert_file`   | Client certificate to authenticate against the cluster |
-| `k8s_key_file`    | Client key to authenticate against the cluster |
-| `k8s_username`    | Username to authenticate against the cluster |
-| `k8s_password`    | Password to authenticate against the cluster |
+| Variable          | Type   | Description                  |
+|-------------------|--------|------------------------------|
+| `k8s_context`     | string | Global cluster context |
+| `k8s_host`        | string | The kubernetes API hostname  |
+| `k8s_api_key`     | string | API key/token to authenticate against the cluster |
+| `k8s_ssl_ca_cert` | string | Certificate authority to authenticate against the cluster |
+| `k8s_cert_file`   | string | Client certificate to authenticate against the cluster |
+| `k8s_key_file`    | string | Client key to authenticate against the cluster |
+| `k8s_username`    | string | Username to authenticate against the cluster |
+| `k8s_password`    | string | Password to authenticate against the cluster |
 
-#### List of templates to create/delete
+### Available list item keys
 
 The only required item key is `template`, everything else is optional.
 
@@ -89,7 +100,7 @@ The dry-run does not test if the templates to be deployed will actually work, it
 a diff output similar to `git diff`. With this you will be able to see any changes your local
 template will introduce compared to what is already deployed at the moment.
 
-#### How does it work
+### How does it work
 
 At a very brief level the dry-run works as follows:
 
@@ -99,7 +110,7 @@ At a very brief level the dry-run works as follows:
 2. Renders the local jinja kubernetes template
 3. Diff compare both templates in human readable yaml format and add the result to Ansible's diff output
 
-#### Particularities
+### Particularities
 
 Kubernetes automatically adds a lot of default options to its deployed templates, if no value
 has been specified for it in your template. This would make the diff output unusable as local and
@@ -111,7 +122,7 @@ that define keys to ignore on remote side.
 This *ignore* part is still work in progress as I did not have the chance to compare all available
 deployment kinds. The current ignore implementation can be seen in [vars/main.yml](vars/main.yml).
 
-#### How does it look
+### How does it look
 
 For dry-run it is recommended to use the `--diff` option so that you can actually see the changes.
 
@@ -282,17 +293,19 @@ $ ansible-playbook playbook.yml -e k8s_create=1 -e k8s_context=prod-cluster
 
 ## Testing
 
-#### Requirements
+### Requirements
+
+In order to run the tests you need to meet the following software requirements:
 
 * Docker
 * [yamllint](https://github.com/adrienverge/yamllint)
 * [openshift](https://pypi.org/project/openshift/) Python package
 * [PyYAML](https://pyyaml.org/) Python package
-* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl)
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl) binary
 
 
 
-#### Run tests
+### Run tests
 
 ```bash
 # Lint the source files
