@@ -93,7 +93,6 @@ $ ansible-playbook playbook-k8s.yml -i inventories/dev/hosts --check --diff
 
 ```diff
 TASK [k8s : [my-kubernetes-cluster.k8s.local] diff: namespace.yml.j2] *******************
-Monday 03 September 2018  09:01:11 +0200 (0:00:00.246)       0:00:00.971 ******
 --- before
 +++ after
 @@ -1,8 +1,6 @@
@@ -105,6 +104,31 @@ Monday 03 September 2018  09:01:11 +0200 (0:00:00.246)       0:00:00.971 ******
    labels:
      name: jenkinks
    name: jenkinks
+
+changed: [kubernetes]
+
+TASK [k8s : [my-kubernetes-cluster.k8s.local] diff: metrics-server-dpl.yml.j2] **********
+--- before
++++ after
+@@ -1,7 +1,6 @@
+ apiVersion: extensions/v1beta1
+ kind: Deployment
+ metadata:
+-  annotations: {}
+   labels:
+     k8s-app: metrics-server
+   name: metrics-server
+@@ -10,10 +9,6 @@
+   selector:
+     matchLabels:
+       k8s-app: metrics-server
++  strategy:
++    rollingUpdate:
++      maxSurge: '1'
++      maxUnavailable: '1'
+   template:
+     metadata:
+       labels:
 
 changed: [kubernetes]
 ```
