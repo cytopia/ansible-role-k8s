@@ -93,6 +93,8 @@ template will introduce compared to what is already deployed at the moment.
 
 At a very brief level the dry-run works as follows:
 
+![ydiff](ydiff.png)
+
 1. Read out currently deployed template from Kubernetes via `kubectl`
 2. Renders the local jinja kubernetes template
 3. Diff compare both templates in human readable yaml format and add the result to Ansible's diff output
