@@ -3,7 +3,7 @@
 This role renders an arbitrary number of [Jinja2](http://jinja.pocoo.org/) templates and deploys
 or removes them to/from Kubernetes cluster.
 
-Additionally this role offers a *dry-run* for Kubernetes deployments by doing a line-by-line
+Additionally this role offers a *dry-run*<sup><a href="#dry-run">[1]</a></sup> for Kubernetes deployments by doing a line-by-line
 diff between local templates to deploy and already deployed templayes.
 
 [![Build Status](https://travis-ci.org/cytopia/ansible-role-k8s.svg?branch=master)](https://travis-ci.org/cytopia/ansible-role-k8s)
@@ -85,20 +85,29 @@ k8s_templates_create:
 
 ## Dry-run
 
+The dry-run does not test if the templates to be deployed will actually work, it simply just adds
+a diff output similar to `git diff`. With this you will be able to see any changes your local
+template will introduce compared to what is already deployed at the moment.
+
 #### How does it work
 
-The dry-run does the following
+At a very brief level the dry-run works as follows:
 
-1. Read out the currently deployed templates from Kubernetes via `KUBE_EDITOR=cat kubectl edit -f <file>`
+1. Read out currently deployed template from Kubernetes via `kubectl`
 2. Renders the local jinja kubernetes template
-3. Diff compares both and adds the result to Ansible's diff output
+3. Diff compare both templates in human readable yaml format and add the result to Ansible's diff output
 
-As Kubernetes adds a lot of default options to its deployed templates, they will be ignored
-in the diff output if the local template does not provide a value for that.
+#### Particularities
 
-The ignoring part is still work in progress as I did not have the chance to compare all available
+Kubernetes automatically adds a lot of default options to its deployed templates, if no value
+has been specified for it in your template. This would make the diff output unusable as local and
+deployed templates would always show differences.
+
+To overcome this problem, the K8s role offers a dictionary definition for all Kubernetes *kinds*
+that define keys to ignore on remote side.
+
+This *ignore* part is still work in progress as I did not have the chance to compare all available
 deployment kinds. The current ignore implementation can be seen in [vars/main.yml](vars/main.yml).
-
 
 #### How does it look
 
