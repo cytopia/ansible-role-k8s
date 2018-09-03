@@ -1,35 +1,142 @@
 ---
 
-- name: >-
+###
+### Set a sane name for the rendered file
+###
+- name: set item variables
+  set_fact:
+    k8s_template_file_name: >-
+      {{ k8s_tmp_dir }}/{{ inventory_hostname }}/{{ k8s_item.template|dirname }}/{{ k8s_item.template|basename }}.yml
+    k8s_task_prefix: >-
       {% if 'context' in k8s_item -%}
         [{{ k8s_item.context }}]{{' '}}
       {%- elif k8s_context -%}
         [{{ k8s_context }}]{{' '}}
-      {%- endif %}ensure template is deployed: {{ k8s_item.template | basename }}
+      {%- endif %}
+  check_mode: False
+  changed_when: False
+  no_log: True
+
+- name: ensure temporary directory for rendered templates exist
+  file:
+    path: "{{ k8s_template_file_name | dirname }}"
+    state: directory
+  check_mode: False
+  changed_when: False
+  no_log: True
+
+
+###
+### Render kubernetes templates
+###
+
+- name: "{{ k8s_task_prefix }}ensure template is rendered: {{ k8s_item.template | basename }}"
+  template:
+    src: "{{ k8s_item.template }}"
+    dest: "{{ k8s_template_file_name }}"
+    mode: 0644
+  check_mode: False
+  changed_when: False
+  no_log: True
+
+
+###
+### Diff kubernetes template
+###
+- name: "{{ k8s_task_prefix }}diff: {{ k8s_item.template | basename }}"
+  ydiff:
+    source: "{{ lookup('template', k8s_item.template) }}"
+    target: |-
+      KUBE_EDITOR=cat kubectl
+        {#- ********** context ********** -#}
+        {%- if 'context' in k8s_item -%}
+          {{' '}}--context={{ k8s_item.context }}
+        {%- elif k8s_context -%}
+          {{' '}}--context={{ k8s_context }}
+        {%- endif -%}
+
+        {#- ********** api_key ********** -#}
+        {%- if 'api_key' in k8s_item -%}
+          {{' '}}--token={{ k8s_item.api_key }}
+        {%- elif k8s_api_key is defined -%}
+          {{' '}}--token={{ k8s_api_key }}
+        {%- endif -%}
+
+        {#- ********** ssl_ca_cert ********** -#}
+        {%- if 'ssl_ca_cert' in k8s_item -%}
+          {{' '}}--certificate-authority={{ k8s_item.ssl_ca_cert }}
+        {%- elif k8s_ssl_ca_cert is defined -%}
+          {{' '}}--certificate-authority={{ k8s_ssl_ca_cert }}
+        {%- endif -%}
+
+        {#- ********** cert_file ********** -#}
+        {%- if 'cert_file' in k8s_item -%}
+          {{' '}}--client-certificate={{ k8s_item.cert_file }}
+        {%- elif k8s_cert_file is defined -%}
+          {{' '}}--client-certificate={{ k8s_cert_file }}
+        {%- endif -%}
+
+        {#- ********** key_file ********** -#}
+        {%- if 'key_file' in k8s_item -%}
+          {{' '}}--client-key={{ k8s_item.key_file }}
+        {%- elif k8s_key_file is defined -%}
+          {{' '}}--client-key={{ k8s_key_file }}
+        {%- endif -%}
+
+        {#- ********** host ********** -#}
+        {%- if 'host' in k8s_item -%}
+          {{' '}}--server={{ k8s_item.host }}
+        {%- elif k8s_host is defined -%}
+          {{' '}}--server={{ k8s_host }}
+        {%- endif -%}
+
+        {#- ********** username ********** -#}
+        {%- if 'username' in k8s_item -%}
+          {{' '}}--username={{ k8s_item.username }}
+        {%- elif k8s_username is defined -%}
+          {{' '}}--username={{ k8s_username }}
+        {%- endif -%}
+
+        {#- ********** password ********** -#}
+        {%- if 'password' in k8s_item -%}
+          {{' '}}--password={{ k8s_item.password }}
+        {%- elif k8s_password is defined -%}
+          {{' '}}--password={{ k8s_password }}
+        {%- endif -%}
+
+        {#- ********** what template to use ********** -#}
+        {{' '}}edit -f {{ k8s_template_file_name }} -o yaml
+    source_type: string
+    target_type: command
+    diff_ignore_keys: |
+      {% set k8s_tpl = lookup('template', k8s_item.template) | from_yaml %}
+      {% set k8s_kind = k8s_tpl['kind'] %}
+      {% if k8s_kind in k8s_diff_ignore_keys -%}
+        {{ k8s_diff_ignore_keys['_all'] | combine(k8s_diff_ignore_keys[k8s_kind], recursive=True) }}
+      {%- else -%}
+        {{ k8s_diff_ignore_keys['_all'] }}
+      {%- endif %}
+    diff_ignore_empty: "{{ k8s_diff_ignore_empty }}"
+  check_mode: False
+
+
+###
+### Deploy kubernetes template
+###
+- name: "{{ k8s_task_prefix }}ensure template is deployed: {{ k8s_item.template | basename }}"
   k8s:
     state: present
     force: "{{ k8s_force | default(False) }}"
     definition: "{{ lookup('template', k8s_item.template) | from_yaml }}"
     # Optional auth variables
     context: "{{ k8s_item.context | default(k8s_context | default(omit)) }}"
-    api_key: "{{ k8s_item.api_key | default(omit) }}"
-    ssl_ca_cert: "{{ k8s_item.ssl_ca_cert | default(omit) }}"
-    cert_file: "{{ k8s_item.cert_file | default(omit) }}"
-    key_file: "{{ k8s_item.key_file | default(omit) }}"
-    host: "{{ k8s_item.host | default(omit) }}"
-    username: "{{ k8s_item.username | default(omit) }}"
-    password: "{{ k8s_item.password | default(omit) }}"
-  # Alway run when k8s_tag is not defined
-  # or only run templates that match k8s_tag values
-  when: |
-    (
-      k8s_tag is defined and k8s_tag and
-      k8s_item.tag is defined and k8s_item.tag and
-      k8s_tag == k8s_item.tag
-    ) or (
-      k8s_tag is defined and k8s_tag and
-      k8s_item.tags is defined and k8s_item.tags and
-      k8s_tag in k8s_item.tags
-    ) or (
-      k8s_tag is not defined
-    )
+    api_key: "{{ k8s_item.api_key | default(k8s_api_key | default(omit)) }}"
+    ssl_ca_cert: "{{ k8s_item.ssl_ca_cert | default(k8s_ssl_ca_cert | default(omit)) }}"
+    cert_file: "{{ k8s_item.cert_file | default(k8s_cert_file | default(omit)) }}"
+    key_file: "{{ k8s_item.key_file | default(k8s_key_file | default(omit)) }}"
+    host: "{{ k8s_item.host | default(k8s_host | default(omit)) }}"
+    username: "{{ k8s_item.username | default(k8s_username | default(omit)) }}"
+    password: "{{ k8s_item.password | default(k8s_password | default(omit)) }}"
+  # Never run in check mode, as this module will always report 'changed'.
+  # Check mode is implemented above via --diff output.
+  when: not ansible_check_mode
