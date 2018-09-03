@@ -6,7 +6,7 @@
 - name: set item variables
   set_fact:
     k8s_template_file_name: >-
-      {{ k8s_tmp_dir }}/{{ inventory_hostname }}/{{ k8s_item.template | dirname }}/{{ k8s_item.template | basename }}.yml
+      {{ k8s_tmp_dir }}/{{ inventory_hostname }}/{{ k8s_item.template|dirname }}/{{ k8s_item.template|basename }}.yml
     k8s_task_prefix: >-
       {% if 'context' in k8s_item -%}
         [{{ k8s_item.context }}]{{' '}}
@@ -129,14 +129,14 @@
     force: "{{ k8s_force | default(False) }}"
     definition: "{{ lookup('template', k8s_item.template) | from_yaml }}"
     # Optional auth variables
-    context:     "{{ k8s_item.context     | default(k8s_context     | default(omit)) }}"
-    api_key:     "{{ k8s_item.api_key     | default(k8s_api_key     | default(omit)) }}"
+    context: "{{ k8s_item.context | default(k8s_context | default(omit)) }}"
+    api_key: "{{ k8s_item.api_key | default(k8s_api_key | default(omit)) }}"
     ssl_ca_cert: "{{ k8s_item.ssl_ca_cert | default(k8s_ssl_ca_cert | default(omit)) }}"
-    cert_file:   "{{ k8s_item.cert_file   | default(k8s_cert_file   | default(omit)) }}"
-    key_file:    "{{ k8s_item.key_file    | default(k8s_key_file    | default(omit)) }}"
-    host:        "{{ k8s_item.host        | default(k8s_host        | default(omit)) }}"
-    username:    "{{ k8s_item.username    | default(k8s_username    | default(omit)) }}"
-    password:    "{{ k8s_item.password    | default(k8s_password    | default(omit)) }}"
+    cert_file: "{{ k8s_item.cert_file | default(k8s_cert_file | default(omit)) }}"
+    key_file: "{{ k8s_item.key_file | default(k8s_key_file | default(omit)) }}"
+    host: "{{ k8s_item.host | default(k8s_host | default(omit)) }}"
+    username: "{{ k8s_item.username | default(k8s_username | default(omit)) }}"
+    password: "{{ k8s_item.password | default(k8s_password | default(omit)) }}"
   # Never run in check mode, as this module will always report 'changed'.
   # Check mode is implemented above via --diff output.
   when: not ansible_check_mode
