@@ -9,7 +9,7 @@ diff between local templates to deploy and already deployed templayes.
 [![Build Status](https://travis-ci.org/cytopia/ansible-role-k8s.svg?branch=master)](https://travis-ci.org/cytopia/ansible-role-k8s)
 [![Version](https://img.shields.io/github/tag/cytopia/ansible-role-k8s.svg)](https://github.com/cytopia/ansible-role-k8s/tags)
 
-** Table of Contents**
+**Table of Contents**
 
 1. [Requirements](#requirements)
 2. [Role variables](#role-variables)
