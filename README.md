@@ -85,6 +85,23 @@ k8s_templates_create:
 
 ## Dry-run
 
+#### How does it work
+
+The dry-run does the following
+
+1. Read out the currently deployed templates from Kubernetes via `KUBE_EDITOR=cat kubectl edit -f <file>`
+2. Renders the local jinja kubernetes template
+3. Diff compares both and adds the result to Ansible's diff output
+
+As Kubernetes adds a lot of default options to its deployed templates, they will be ignored
+in the diff output if the local template does not provide a value for that.
+
+The ignoring part is still work in progress as I did not have the chance to compare all available
+deployment kinds. The current ignore implementation can be seen in [vars/main.yml](vars/main.yml).
+
+
+#### How does it look
+
 For dry-run it is recommended to use the `--diff` option so that you can actually see the changes.
 
 ```bash
