@@ -1,32 +1,115 @@
 # Ansible role: K8s
 
-This role renders an arbitrary number of [Jinja2](http://jinja.pocoo.org/) templates and deploys or removes them to/from Kubernetes cluster.
+This role renders an arbitrary number of [Jinja2](http://jinja.pocoo.org/) templates and deploys
+or removes them to/from Kubernetes cluster.
 
+Additionally this role offers a *dry-run* for Kubernetes deployments by doing a line-by-line
+diff between local templates to deploy and already deployed templayes.
 
 [![Build Status](https://travis-ci.org/cytopia/ansible-role-k8s.svg?branch=master)](https://travis-ci.org/cytopia/ansible-role-k8s)
 [![Version](https://img.shields.io/github/tag/cytopia/ansible-role-k8s.svg)](https://github.com/cytopia/ansible-role-k8s/tags)
+
+** Table of Contents**
+
+1. [Requirements](#requirements)
+2. [Role variables](#role-variables)
+3. [Dry-run](#dry-run)
+4. [Examples](#examples)
+5. [Testing](#testing)
+6. [License](#license)
 
 
 ## Requirements
 
 * Ansible 2.5
 * [openshift](https://pypi.org/project/openshift/) Python package
+* [PyYAML](https://pyyaml.org/) Python package
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl)
 
 
-## Command line variables
+## Role variables
 
 Additional variables that can be used (either as `host_vars`/`group_vars` or via command line args):
+
+#### Control variables
 
 | Variable      | Description                  |
 |---------------|------------------------------|
 | `k8s_create`  | If set with any value, only deployments to create are executed. |
 | `k8s_remove`  | If set with any value, only deployments to remove are executed. |
-| `k8s_context` | Global cluster context (can be overwritten by each array item). |
 | `k8s_tag`     | Only deployments (create or remove) which have this tag specified in their definition are executed. |
 | `k8s_force`   | Force deployment. The existing object will be replaced. |
 
+#### Authentication variables
 
-## Example
+Each of the following values can also be set per item and will then take precedence over the
+below listed global values:
+
+| Variable          | Description                  |
+|-------------------|------------------------------|
+| `k8s_context`     | Global cluster context |
+| `k8s_host`        | The kubernetes API hostname  |
+| `k8s_api_key`     | API key/token to authenticate against the cluster |
+| `k8s_ssl_ca_cert` | Certificate authority to authenticate against the cluster |
+| `k8s_cert_file`   | Client certificate to authenticate against the cluster |
+| `k8s_key_file`    | Client key to authenticate against the cluster |
+| `k8s_username`    | Username to authenticate against the cluster |
+| `k8s_password`    | Password to authenticate against the cluster |
+
+#### List of templates to create/delete
+
+The only required item key is `template`, everything else is optional.
+
+```yml
+# Specify a list of templates to remove
+# Runs before k8s_templates_create
+# Has the same arguments as k8s_templates_create
+k8s_templates_remove: []
+
+# Specify a list of templates to deploy
+k8s_templates_create:
+  - template:       # <str> Path to jinja2 template to deploy
+    tag:            # <str> tag this template (used by k8s_tag to only deploy this list item)
+    tags:           # <list> list of tags (mutually exclusive with tag)  
+      - tag1
+      - tag2
+    context:        # <str> Overwrites k8s_context for this item
+    host:           # <str> Overwrites k8s_host for this item
+    api_key:        # <str> Overwrites k8s_api_key for this item
+    ssl_ca_cert:    # <str> Overwrites k8s_ssl_ca_cert for this item
+    cert_file:      # <str> Overwrites k8s_cert_file for this item
+    key_file:       # <str> Overwrites k8s_key_file for this item
+    username:       # <str> Overwrites k8s_username for this item
+    password:       # <str> Overwrites k8s_password for this item
+```
+
+## Dry-run
+
+For dry-run it is recommended to use the `--diff` option so that you can actually see the changes.
+
+```bash
+$ ansible-playbook playbook-k8s.yml -i inventories/dev/hosts --check --diff
+```
+
+```diff
+TASK [k8s : [my-kubernetes-cluster.k8s.local] diff: namespace.yml.j2] *******************
+Monday 03 September 2018  09:01:11 +0200 (0:00:00.246)       0:00:00.971 ******
+--- before
++++ after
+@@ -1,8 +1,6 @@
+ apiVersion: v1
+ kind: Namespace
+ metadata:
+-  annotations:
+-    jenkins-x.io/created-by: Jenkins X
+   labels:
+     name: jenkinks
+   name: jenkinks
+
+changed: [kubernetes]
+```
+
+## Examples
 
 For all examples below, we will use the following Ansible playbook:
 
@@ -152,6 +235,9 @@ $ ansible-playbook playbook.yml -e k8s_create=1 -e k8s_context=prod-cluster
 * Docker
 * [yamllint](https://github.com/adrienverge/yamllint)
 * [openshift](https://pypi.org/project/openshift/) Python package
+* [PyYAML](https://pyyaml.org/) Python package
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl)
+
 
 
 #### Run tests
@@ -166,3 +252,10 @@ make test
 # Run integration tests with custom Ansible version
 make test ANSIBLE_VERSION=2.6
 ```
+
+
+## License
+
+**[MIT License](LICENSE)**
+
+Copyright (c) 2018 [cytopia](https://github.com/cytopia)
