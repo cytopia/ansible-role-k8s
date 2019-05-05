@@ -56,5 +56,10 @@ jobs:
         - ANSIBLE_VERSION=latest
       script:
         - make test ANSIBLE_VERSION=${ANSIBLE_VERSION}
-      notifications:
-        webhooks: https://galaxy.ansible.com/api/v1/notifications/
+
+
+###
+### Notify Ansible Galaxy to pull changes
+###
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
