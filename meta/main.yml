@@ -6,6 +6,7 @@ galaxy_info:
   company: cytopia
   license: MIT
   description: Deploy and remove Kubernetes templates with Jinja2 templates
+  role_name: k8s
   min_ansible_version: 2.6
   platforms:
     - name: EL
