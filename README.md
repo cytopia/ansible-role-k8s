@@ -7,6 +7,7 @@ for Kubernetes deployments by doing a line-by-line diff between local templates 
 deployed templates.
 
 [![Build Status](https://travis-ci.org/cytopia/ansible-role-k8s.svg?branch=master)](https://travis-ci.org/cytopia/ansible-role-k8s)
+[![Ansible Galaxy](https://img.shields.io/ansible/role/d/40172.svg)](https://galaxy.ansible.com/cytopia/k8s)
 [![Version](https://img.shields.io/github/tag/cytopia/ansible-role-k8s.svg)](https://github.com/cytopia/ansible-role-k8s/tags)
 
 **Table of Contents**
