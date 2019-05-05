@@ -8,14 +8,31 @@ galaxy_info:
   description: Deploy and remove Kubernetes templates with Jinja2 templates
   min_ansible_version: 2.6
   platforms:
-    - name: all
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: GenericUNIX
       versions:
         - all
   galaxy_tags:
+    - aks
     - cloud
     - deployment
     - diff
+    - eks
+    - gks
+    - infrastructure
     - jinja2
     - k8s
     - kubernetes
+    - minicube
     - template
