@@ -58,8 +58,9 @@ jobs:
         - make test ANSIBLE_VERSION=${ANSIBLE_VERSION}
 
 
-###
-### Notify Ansible Galaxy to pull changes
-###
-notifications:
-  webhooks: https://galaxy.ansible.com/api/v1/notifications/
+  ###
+  ### Notify Ansible Galaxy to pull changes
+  ### (Same height as 'jobs')
+  ###
+  notifications:
+    webhooks: https://galaxy.ansible.com/api/v1/notifications/
